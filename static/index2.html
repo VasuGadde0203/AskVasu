@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vasu AI – Recruiter Assistant</title>
+
+  <!-- Tailwind config + CDN -->
+  <script>
+    tailwind = { config: { darkMode: 'class' } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        sans-serif;
+    }
+
+    /* Chat scrollbars */
+    #chat::-webkit-scrollbar,
+    .faq-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 4px;
+    }
+
+    #chat::-webkit-scrollbar-thumb,
+    .faq-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.7);
+      border-radius: 999px;
+    }
+
+    .message-bubble {
+      max-width: 90%;
+      padding: 0.9rem 1.1rem;
+      border-radius: 1rem;
+      margin-bottom: 0.75rem;
+      word-wrap: break-word;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    @media (min-width: 768px) {
+      .message-bubble {
+        max-width: 72%;
+        font-size: 0.97rem;
+      }
+    }
+
+    .message-user {
+      margin-left: auto;
+    }
+
+    .message-bot {
+      margin-right: auto;
+    }
+
+    .markdown-body p {
+      margin: 0.25rem 0;
+    }
+
+    .markdown-body ul {
+      list-style-type: disc;
+      padding-left: 1.2rem;
+      margin: 0.35rem 0 0.5rem;
+    }
+
+    .markdown-body ol {
+      list-style-type: decimal;
+      padding-left: 1.25rem;
+      margin: 0.35rem 0 0.5rem;
+    }
+
+    .markdown-body li {
+      margin: 0.1rem 0;
+    }
+
+    .markdown-body h3,
+    .markdown-body h4 {
+      font-weight: 600;
+      margin-top: 0.4rem;
+      margin-bottom: 0.15rem;
+      font-size: 0.98rem;
+    }
+
+    .markdown-body strong {
+      font-weight: 600;
+    }
+
+    .markdown-body code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+    }
+
+    .dark .markdown-body code {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .light .markdown-body code {
+      background: rgba(209, 213, 219, 0.7);
+    }
+
+    .mic-pulse {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: micPulse 1.3s infinite;
+    }
+
+    @keyframes micPulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75);
+      }
+      70% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 16px rgba(239, 68, 68, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+  </style>
+</head>
+
+<body
+  class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50 flex justify-center px-2 sm:px-4 py-3"
+>
+  <div
+    class="w-full max-w-6xl flex flex-col md:flex-row gap-3 md:gap-4 rounded-2xl md:rounded-3xl border border-slate-800/70 bg-slate-900/60 dark:bg-slate-900/70 bg-clip-padding backdrop-blur-2xl shadow-[0_25px_70px_rgba(15,23,42,0.9)]"
+  >
+    <!-- LEFT: Profile + FAQ (desktop only) -->
+    <aside
+      class="hidden md:flex md:w-72 flex-col border-r border-slate-800/60 px-5 py-5"
+    >
+      <div class="mb-5">
+        <p class="text-xs uppercase tracking-[0.15em] text-slate-500 mb-1">
+          Candidate
+        </p>
+        <h1 class="text-lg font-semibold text-slate-50">
+          Vasu Gadde – Data Scientist & AI Engineer
+        </h1>
+        <p class="text-xs text-slate-400 mt-2">
+          Ask about experience, projects, strengths, and fit for your role.
+        </p>
+
+        <div class="flex flex-wrap gap-1.5 mt-3 text-[0.65rem]">
+          <span
+            class="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/40"
+            >AI / ML</span
+          >
+          <span
+            class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
+            >FastAPI & Backends</span
+          >
+          <span
+            class="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/40"
+            >RAG & LLM Apps</span
+          >
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col gap-2">
+        <p class="text-[0.7rem] text-slate-400 mb-1">
+          Most asked recruiter questions:
+        </p>
+        <div
+          id="sidebar-questions"
+          class="space-y-2 overflow-y-auto pr-1 faq-scroll text-sm"
+        ></div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: Chat + input -->
+    <main class="flex-1 flex flex-col">
+      <!-- Header (also visible on mobile) -->
+      <header
+        class="flex items-center justify-between px-4 sm:px-5 pt-4 pb-2 md:pt-4 md:pb-3 border-b border-slate-800/60"
+      >
+        <div class="md:hidden">
+          <h1 class="text-base font-semibold">Vasu AI – Recruiter Assistant</h1>
+          <p class="text-[0.72rem] text-slate-400 mt-1 max-w-xs">
+            Ask about Vasu’s experience, projects, and how he fits your role.
+          </p>
+        </div>
+        <div class="hidden md:block">
+          <h2 class="text-sm font-medium text-slate-300">
+            Vasu AI – Recruiter Assistant
+          </h2>
+        </div>
+
+        <button
+          id="themeToggle"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-700/80 px-3 py-1.5 text-xs text-slate-100 hover:bg-slate-800/70 transition"
+        >
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Light</span>
+        </button>
+      </header>
+
+      <!-- Mobile FAQ chips -->
+      <section
+        class="md:hidden px-3 sm:px-4 pt-2 pb-2 border-b border-slate-800/60"
+      >
+        <div
+          id="mobile-questions"
+          class="flex gap-2 overflow-x-auto faq-scroll pb-1 text-xs"
+        ></div>
+      </section>
+
+      <!-- Chat area -->
+      <section
+        id="chat"
+        class="flex-1 overflow-y-auto px-3 sm:px-5 py-3 sm:py-4"
+      ></section>
+
+      <!-- Input -->
+      <footer class="px-3 sm:px-5 pb-3 sm:pb-4 pt-1 border-t border-slate-800/70">
+        <div
+          class="flex items-center gap-2 sm:gap-3 rounded-2xl bg-slate-900/80 dark:bg-slate-900/80 border border-slate-700/70 px-3 sm:px-4 py-2 shadow-[0_18px_40px_rgba(15,23,42,0.9)]"
+        >
+          <!-- Mic -->
+          <button
+            id="micBtn"
+            class="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white text-xl transition"
+          >
+            🎙️
+          </button>
+
+          <!-- Text input -->
+          <input
+            id="textInput"
+            type="text"
+            autocomplete="off"
+            placeholder="Type your question..."
+            class="flex-1 bg-transparent border-none outline-none text-sm sm:text-[0.95rem] placeholder:text-slate-500 text-slate-100"
+          />
+
+          <!-- Send -->
+          <button
+            id="sendBtn"
+            class="inline-flex items-center justify-center rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm sm:text-[0.95rem] font-medium px-4 sm:px-5 py-2 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          >
+            Send
+          </button>
+        </div>
+
+        <p
+          class="mt-1.5 text-[0.65rem] text-right text-slate-500 leading-snug"
+        >
+          Tip: type or use the mic. After speaking, release the button – your
+          question appears first, then the answer with audio.
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const chatEl = document.getElementById("chat");
+    const textInput = document.getElementById("textInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const micBtn = document.getElementById("micBtn");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeLabel = document.getElementById("themeLabel");
+    const sidebarQuestions = document.getElementById("sidebar-questions");
+    const mobileQuestions = document.getElementById("mobile-questions");
+
+    const BASE_URL = window.location.origin;
+
+    let messages = [];
+    let recorder;
+    let chunks = [];
+    let isRecording = false;
+    let isSending = false;
+
+    const FAQs = [
+      "Tell me about yourself.",
+      "Walk me through your experience at JHS Associates.",
+      "Explain your AI-powered recruitment system project.",
+      "What are your strongest skills?",
+      "Why should we hire you?",
+      "Explain your WhatsApp Chat Analyzer project.",
+      "Explain your CryptoLab project.",
+      "Explain your Personal Research Assistant project.",
+      "Explain your GitaChatBot project.",
+      "Explain your AI-powered Document Analyzer project.",
+      "Explain your Machine Learning internship experience."
+    ];
+
+    // ---------- THEME ----------
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      if (theme === "dark") {
+        root.classList.add("dark");
+        themeIcon.textContent = "🌙";
+        themeLabel.textContent = "Light";
+      } else {
+        root.classList.remove("dark");
+        themeIcon.textContent = "☀️";
+        themeLabel.textContent = "Dark";
+      }
+      localStorage.setItem("vasu-theme", theme);
+    }
+
+    const storedTheme = localStorage.getItem("vasu-theme") || "dark";
+    applyTheme(storedTheme);
+
+    themeToggle.addEventListener("click", () => {
+      const root = document.documentElement;
+      const next = root.classList.contains("dark") ? "light" : "dark";
+      applyTheme(next);
+    });
+
+    function scrollChatToBottom() {
+      requestAnimationFrame(() => {
+        chatEl.scrollTop = chatEl.scrollHeight;
+      });
+    }
+
+    // ---------- RENDER HELPERS ----------
+    function addUserMessage(text, opts = {}) {
+      const bubble = document.createElement("div");
+      bubble.className =
+        "message-bubble message-user bg-gradient-to-r from-indigo-500 to-violet-500 text-slate-50 shadow-[0_12px_32px_rgba(79,70,229,0.65)] border border-indigo-400/60";
+      if (opts.pending) {
+        bubble.classList.add("opacity-70", "italic");
+      }
+      bubble.textContent = text;
+      chatEl.appendChild(bubble);
+      scrollChatToBottom();
+      return bubble;
+    }
+
+    function addBotMessage(text, audioUrl = null) {
+      const bubble = document.createElement("div");
+      bubble.className =
+        "message-bubble message-bot bg-slate-900/95 border border-slate-700/80 text-slate-50 shadow-[0_16px_40px_rgba(15,23,42,0.95)] rounded-2xl";
+
+      const content = document.createElement("div");
+      content.className = "markdown-body text-[0.9rem] sm:text-[0.95rem]";
+      try {
+        content.innerHTML = marked.parse(text || "");
+      } catch (err) {
+        console.error("Markdown parse error:", err);
+        content.textContent = text || "";
+      }
+
+      bubble.appendChild(content);
+
+      if (audioUrl) {
+        const audioWrapper = document.createElement("div");
+        audioWrapper.className = "mt-3";
+        const audioEl = document.createElement("audio");
+        audioEl.controls = true;
+        audioEl.src = BASE_URL + audioUrl;
+        audioEl.className = "w-full max-w-xs";
+        audioWrapper.appendChild(audioEl);
+        bubble.appendChild(audioWrapper);
+      }
+
+      chatEl.appendChild(bubble);
+      scrollChatToBottom();
+    }
+
+    function addSystemWelcome() {
+      const welcome = `Hi, I'm Vasu's AI interview assistant.  
+You can ask me about his experience, projects, skills, and why he might fit your role.  
+Use the sample questions or ask your own.`;
+      addBotMessage(welcome, null);
+    }
+
+    // ---------- FAQ BUTTONS ----------
+    function buildQuestionButtons() {
+      FAQs.forEach((q) => {
+        const sideBtn = document.createElement("button");
+        sideBtn.className =
+          "w-full text-left text-[0.8rem] rounded-xl px-3 py-2 bg-slate-900/70 hover:bg-slate-800/80 text-slate-100 border border-slate-700/70 transition";
+        sideBtn.textContent = q;
+        sideBtn.addEventListener("click", () => handleTextQuestion(q));
+        sidebarQuestions.appendChild(sideBtn);
+
+        const chip = document.createElement("button");
+        chip.className =
+          "shrink-0 rounded-full border border-slate-600/70 bg-slate-900/80 px-3 py-1.5 text-[0.7rem] text-slate-100 hover:bg-slate-800/80";
+        chip.textContent = q;
+        chip.addEventListener("click", () => handleTextQuestion(q));
+        mobileQuestions.appendChild(chip);
+      });
+    }
+
+    // ---------- TEXT QUESTION ----------
+    async function handleTextQuestion(text) {
+      if (!text || isSending) return;
+
+      isSending = true;
+      sendBtn.disabled = true;
+
+      addUserMessage(text);
+
+      const payload = {
+        question: text,
+        messages: messages
+      };
+
+      try {
+        const res = await fetch(`${BASE_URL}/ask_question`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        messages = data.messages || [];
+        addBotMessage(data.response, data.audio_url || null);
+      } catch (err) {
+        console.error("Text question error:", err);
+        addBotMessage(
+          "Sorry, something went wrong while answering that. Please try again."
+        );
+      } finally {
+        isSending = false;
+        sendBtn.disabled = false;
+        scrollChatToBottom();
+      }
+    }
+
+    async function sendText() {
+      const text = textInput.value.trim();
+      if (!text) return;
+      textInput.value = "";
+      await handleTextQuestion(text);
+    }
+
+    sendBtn.addEventListener("click", sendText);
+    textInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendText();
+      }
+    });
+
+    // ---------- VOICE ----------
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        recorder = new MediaRecorder(stream);
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = async () => {
+          if (!chunks.length) return;
+
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          chunks = [];
+
+          const pendingBubble = addUserMessage("Transcribing...", {
+            pending: true
+          });
+
+          const form = new FormData();
+          form.append("file", blob, "audio.webm");
+          form.append("messages", JSON.stringify(messages));
+
+          try {
+            const res = await fetch(`${BASE_URL}/process_audio`, {
+              method: "POST",
+              body: form
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const data = await res.json();
+            messages = data.messages || [];
+
+            pendingBubble.textContent =
+              data.transcript || "[Unclear audio]";
+            pendingBubble.classList.remove("opacity-70", "italic");
+
+            addBotMessage(data.response, data.audio_url || null);
+          } catch (err) {
+            console.error("Audio question error:", err);
+            pendingBubble.textContent =
+              "Sorry, I couldn't process that audio. Please try again.";
+            pendingBubble.classList.remove("opacity-70", "italic");
+          } finally {
+            micBtn.classList.remove("mic-pulse");
+            micBtn.textContent = "🎙️";
+            isRecording = false;
+          }
+        };
+      })
+      .catch((err) => {
+        console.error("Mic permission error:", err);
+        micBtn.disabled = true;
+        micBtn.title = "Microphone permission denied";
+      });
+
+    micBtn.addEventListener("click", () => {
+      if (!recorder) return;
+      if (!isRecording) {
+        chunks = [];
+        recorder.start();
+        isRecording = true;
+        micBtn.classList.add("mic-pulse");
+        micBtn.textContent = "⏹️";
+      } else {
+        recorder.stop();
+      }
+    });
+
+    // ---------- INIT ----------
+    buildQuestionButtons();
+    addSystemWelcome();
+  </script>
+</body>
+</html>

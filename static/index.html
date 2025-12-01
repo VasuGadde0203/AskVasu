@@ -1,699 +1,244 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoiceBot AI</title>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vasu Gadde – AI Interview Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
+  <style>
+    body, html { font-family: 'Inter', sans-serif; background: #000; }
+    .markdown p { margin: 0.75em 0; line-height: 1.7; }
+    .markdown ul { padding-left: 1.5em; margin: 0.75em 0; list-style: disc; }
+    .markdown code {
+      background: rgba(15,23,42,0.8);
+      padding: 0.2em 0.4em;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-        .main-container {
-            display: flex;
-            flex: 1;
-            margin: 1rem;
-            margin-top: 5rem; /* Space for fixed header */
-            gap: 1rem;
-            height: calc(100vh - 5rem - 5rem); /* Subtract header and footer height */
-        }
+    .typing-dots span {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #888;
+      margin: 0 3px;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
 
-        .chat-container {
-            flex: 0 0 70%;
-            max-width: 70%;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            padding-bottom: 6rem;
-            width: 100%;
-            box-sizing: border-box;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .messages-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 1rem; /* Ensure last message has space */
-        }
-
-        .question-panel {
-            flex: 0 0 30%;
-            max-width: 30%;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            overflow-y: auto;
-            height: calc(100vh - 5rem - 5rem);
-            position: sticky;
-            top: 5rem; /* stick below header */
-            align-self: flex-start;
-        }
-
-        .question-card {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-
-        .question-card:hover {
-            background: #e0e7ff;
-            transform: translateY(-2px);
-        }
-
-        .question-card p {
-            margin: 0;
-            color: #1f2937;
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        .message {
-            margin: 0.75rem 0;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            max-width: 80%;
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            word-break: break-word;
-        }
-
-        .message:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-message {
-            background: #3b82f6;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 0;
-        }
-
-        .assistant-message {
-            background: #f1f5f9;
-            color: #1f2937;
-            margin-right: auto;
-            border-bottom-left-radius: 0;
-        }
-
-        .avatar {
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 1rem;
-            background: white;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            height: 5rem;
-        }
-
-        .mic-button {
-            background: #3b82f6;
-            color: white;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .mic-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-        }
-
-        .mic-button.recording {
-            background: #ef4444;
-            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.2);
-            animation: pulse-glow 1.5s infinite;
-        }
-
-        .recording-indicator {
-            display: none;
-            width: 0.75rem;
-            height: 0.75rem;
-            background: #ef4444;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        .recording-indicator.active {
-            display: inline-block;
-        }
-
-        .audio-control {
-            cursor: pointer;
-            font-size: 1.25rem;
-            color: #3b82f6;
-            transition: transform 0.2s ease;
-        }
-
-        .audio-control:hover {
-            transform: scale(1.2);
-            color: #2563eb;
-        }
-
-        .error-message {
-            color: #dc2626;
-            text-align: center;
-            margin: 1rem 0;
-            font-weight: 500;
-        }
-
-        .loading-spinner {
-            display: none;
-            margin: 1rem auto;
-            margin-bottom: 6rem;
-            width: 2rem;
-            height: 2rem;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-spinner.active {
-            display: block;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.2); }
-            50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0.1); }
-            100% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.2); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1024px) {
-            .main-container {
-                flex-direction: column;
-                margin-top: 5rem;
-                height: auto;
-            }
-
-            .chat-container {
-                height: auto;
-                min-height: calc(100vh - 10rem);
-                padding-bottom: 6rem;
-                max-width: 100%;
-            }
-
-            .question-panel {
-                position: static;
-                width: 100%;
-                max-width: 48rem;
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                height: auto;
-                margin-bottom: 1rem;
-            }
-
-            .question-card {
-                flex: 1;
-                min-width: 200px;
-                margin: 0.5rem;
-            }
-
-            .loading-spinner {
-                margin-bottom: 6rem;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .chat-container {
-                margin: 0.5rem;
-                padding: 1rem;
-                padding-bottom: 6rem;
-            }
-
-            .message {
-                max-width: 90%;
-                padding: 0.75rem;
-            }
-
-            .mic-button {
-                width: 3rem;
-                height: 3rem;
-                font-size: 1.5rem;
-            }
-
-            .loading-spinner {
-                width: 1.5rem;
-                height: 1.5rem;
-                border-width: 3px;
-                margin-bottom: 6rem;
-            }
-
-            .question-panel {
-                flex-direction: column;
-            }
-
-            .question-card {
-                min-width: 100%;
-            }
-        }
-    </style>
+    #textInput {
+      min-height: 56px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
-<body>
-    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">VoiceBot AI</h1>
-    </header>
-    <div class="main-container">
-        <div class="chat-container" id="chat-container">
-            <div class="messages-wrapper" id="messages-wrapper"></div>
-            <div class="loading-spinner" id="loading-spinner"></div>
+
+<body class="h-full bg-black text-white">
+
+  <div class="flex h-screen">
+
+    <!-- DESKTOP SIDEBAR (hidden on mobile) -->
+    <div class="hidden md:flex flex-col w-64 bg-gray-900 border-r border-gray-800">
+      <div class="p-5 border-b border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg">VG</div>
+          <div>
+            <h2 class="font-semibold">Vasu Gadde</h2>
+            <p class="text-xs text-gray-400">AI Interview Assistant</p>
+          </div>
         </div>
-        <div class="question-panel" id="question-panel">
-            <div class="question-card" data-question="What should we know about your life story in a few sentences?">
-                <p>What should we know about your life story in a few sentences?</p>
-            </div>
-            <div class="question-card" data-question="What’s your #1 superpower?">
-                <p>What’s your #1 superpower?</p>
-            </div>
-            <div class="question-card" data-question="What are the top 3 areas you’d like to grow in?">
-                <p>What are the top 3 areas you’d like to grow in?</p>
-            </div>
-            <div class="question-card" data-question="What misconception do your coworkers have about you?">
-                <p>What misconception do your coworkers have about you?</p>
-            </div>
-            <div class="question-card" data-question="How do you push your boundaries and limits?">
-                <p>How do you push your boundaries and limits?</p>
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        <span class="mic-button" id="mic-icon">🎙️</span>
-        <span class="recording-indicator" id="recording-indicator"></span>
+      </div>
+      <div class="flex-1 overflow-y-auto scrollbar-hide p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Suggested Questions</p>
+        <div id="desktopQuestions" class="space-y-2"></div>
+      </div>
     </div>
 
-    <script>
-        let isRecording = false;
-        let mediaRecorder;
-        let audioChunks = [];
-        let messages = [];
-        const micIcon = document.getElementById('mic-icon');
-        const recordingIndicator = document.getElementById('recording-indicator');
-        const chatContainer = document.getElementById('chat-container');
-        const messagesWrapper = document.getElementById('messages-wrapper');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const questionPanel = document.getElementById('question-panel');
-        let audioElements = {};
-        // Dynamically set BASE_URL based on the current host
-        const BASE_URL = window.location.hostname.includes('localhost') ? 'http://localhost:8000' : `${window.location.protocol}//${window.location.host}`;
+    <!-- MAIN CHAT AREA -->
+    <div class="flex-1 flex flex-col">
 
-        console.log('BASE_URL set to:', BASE_URL);
+      <!-- Messages -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto px-4 pt-6 pb-24 md:pb-8 scrollbar-hide">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex gap-4 mb-8">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center font-bold">VG</div>
+            <div class="prose prose-invert max-w-none text-gray-100">
+              <p class="text-lg font-medium">Hi! I'm Vasu's AI interview assistant.</p>
+              <p>You can ask me anything about his experience, projects, technical skills, or why he'd be a great fit for your team.</p>
+              <p class="text-gray-400 text-sm mt-3">Try one of the suggested questions <span class="md:hidden">below</span><span class="hidden md:inline">on the left</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        // Initialize MediaRecorder
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm';
-                console.log('MediaRecorder initialized with MIME type:', mimeType);
-                mediaRecorder = new MediaRecorder(stream, { mimeType });
-                mediaRecorder.ondataavailable = e => {
-                    if (e.data.size > 0) {
-                        console.log('Audio chunk received:', e.data.size, 'bytes');
-                        audioChunks.push(e.data);
-                    }
-                };
-                mediaRecorder.onstop = sendAudio;
-            })
-            .catch(err => {
-                console.error('Microphone access error:', err);
-                alert('Microphone access denied. Please allow microphone permissions and try again.');
-            });
+      <!-- MOBILE: Collapsible suggested questions -->
+      <div class="md:hidden px-4 pb-3 bg-black border-b border-gray-800">
+        <details class="cursor-pointer">
+          <summary class="text-sm font-medium text-gray-300 py-2 flex justify-between items-center">
+            Suggested questions
+            <svg class="w-5 h-5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div id="mobileQuestions" class="mt-3 space-y-2 pb-2"></div>
+        </details>
+      </div>
 
-        // Toggle recording
-        micIcon.addEventListener('click', () => {
-            if (!isRecording) {
-                console.log('Starting recording...');
-                audioChunks = [];
-                mediaRecorder.start();
-                micIcon.classList.add('recording');
-                micIcon.textContent = '⏹️';
-                micIcon.style.animation = 'pulse-glow 1.5s infinite';
-                recordingIndicator.classList.add('active');
-                isRecording = true;
-            } else {
-                console.log('Stopping recording...');
-                mediaRecorder.stop();
-                micIcon.classList.remove('recording');
-                micIcon.textContent = '🎙️';
-                micIcon.style.animation = 'none';
-                recordingIndicator.classList.remove('active');
-                isRecording = false;
-            }
+      <!-- INPUT BAR – Fixed on mobile, normal on desktop -->
+      <div class="border-t border-gray-800 bg-black px-4 py-4 md:py-6">
+        <div class="max-w-4xl mx-auto">
+          <div class="relative bg-gray-800 rounded-xl border border-gray-700">
+            <textarea
+              id="textInput"
+              rows="1"
+              placeholder="Ask a question about Vasu..."
+              class="w-full bg-transparent px-4 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none resize-none text-base leading-relaxed"
+            ></textarea>
+            <button id="sendBtn" class="absolute right-2 bottom-2 w-11 h-11 rounded-lg bg-white hover:bg-gray-100 text-black flex items-center justify-center transition disabled:opacity-40">
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+          <!-- <p class="text-center text-xs text-gray-500 mt-2">Press Enter to send</p> -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = window.location.origin;
+    const chatMessages = document.getElementById("chatMessages");
+    const textInput = document.getElementById("textInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const mobileQuestions = document.getElementById("mobileQuestions");
+    const desktopQuestions = document.getElementById("desktopQuestions");
+
+    let conversation = [];
+    let isSending = false;
+    let typingIndicator = null;
+
+    const questions = [
+      "Tell me about yourself",
+      "Walk me through your experience at JHS Associates",
+      "Explain the AI recruitment system you built",
+      "What are your strongest technical skills?",
+      "Why should we hire Vasu?",
+      "Tell me about your WhatsApp Chat Analyzer",
+      "Explain your Personal Research Assistant project",
+      "What kind of roles are you targeting?"
+    ];
+
+    // Add questions
+    [mobileQuestions, desktopQuestions].forEach(container => {
+      questions.forEach(q => {
+        const btn = document.createElement("button");
+        btn.className = "w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 text-sm transition";
+        btn.textContent = q;
+        btn.onclick = () => {
+          textInput.value = q;
+          textInput.focus();
+          sendMessage(q);
+          if (window.innerWidth < 768) document.querySelector('details').open = false;
+        };
+        container.appendChild(btn);
+      });
+    });
+
+    textInput.addEventListener("input", () => {
+      textInput.style.height = "auto";
+      textInput.style.height = textInput.scrollHeight + "px";
+      sendBtn.disabled = !textInput.value.trim();
+    });
+
+    function addUserMessage(text) {
+      const div = document.createElement("div");
+      div.className = "flex justify-end mb-6";
+      div.innerHTML = `<div class="max-w-xl bg-gray-700 text-white rounded-2xl px-5 py-3 text-sm leading-relaxed">${text}</div>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addAIMessage(text) {
+      const div = document.createElement("div");
+      div.className = "flex gap-4 mb-6";
+      div.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center font-bold">VG</div>
+        <div class="flex-1 max-w-3xl prose prose-invert markdown text-gray-100">${marked.parse(text)}</div>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+      typingIndicator = document.createElement("div");
+      typingIndicator.className = "flex gap-4 mb-6";
+      typingIndicator.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0"></div>
+        <div class="bg-gray-800 rounded-2xl px-5 py-4">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>`;
+      chatMessages.appendChild(typingIndicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTyping() {
+      if (typingIndicator) typingIndicator.remove();
+    }
+
+    async function sendMessage(text) {
+      if (!text.trim() || isSending) return;
+      text = text.trim();
+      addUserMessage(text);
+      textInput.value = "";
+      textInput.style.height = "auto";
+      sendBtn.disabled = true;
+      isSending = true;
+      showTyping();
+
+      conversation.push({ role: "user", content: text });
+
+      try {
+        const res = await fetch(`${BASE_URL}/ask_question`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: text, messages: conversation })
         });
+        const data = await res.json();
+        conversation = data.messages || conversation;
+        removeTyping();
+        addAIMessage(data.response);
+      } catch {
+        removeTyping();
+        addAIMessage("Sorry, something went wrong. Please try again.");
+      } finally {
+        isSending = false;
+        sendBtn.disabled = false;
+        textInput.focus();
+      }
+    }
 
-        // Display loading spinner
-        function displayLoading(show) {
-            console.log('Loading spinner:', show ? 'shown' : 'hidden');
-            loadingSpinner.classList.toggle('active', show);
-            if (show) {
-                messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
-            }
-        }
+    textInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(textInput.value);
+      }
+    });
 
-        // Display user message
-        function displayUserMessage(transcript) {
-            try {
-                console.log('Appending user message:', transcript);
-                const userDiv = document.createElement('div');
-                userDiv.className = 'message user-message';
-                const userAvatar = document.createElement('span');
-                userAvatar.className = 'avatar';
-                userAvatar.textContent = '👤';
-                userDiv.appendChild(userAvatar);
-                const userText = document.createElement('span');
-                userText.textContent = transcript || 'No transcript';
-                userDiv.appendChild(userText);
-                messagesWrapper.appendChild(userDiv);
-                console.log('User message appended');
-                messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
-            } catch (e) {
-                console.error('User message append error:', e);
-                alert('Failed to display user message. Please try again.');
-            }
-        }
+    sendBtn.addEventListener("click", () => sendMessage(textInput.value));
 
-        // Display assistant message
-        function displayAssistantMessage(responseText, audioUrl, messageId) {
-            let audioIcon;
-            try {
-                console.log('Appending assistant message:', responseText);
-                const assistantDiv = document.createElement('div');
-                assistantDiv.className = 'message assistant-message';
-                const assistantAvatar = document.createElement('span');
-                assistantAvatar.className = 'avatar';
-                assistantAvatar.textContent = '🤖';
-                assistantDiv.appendChild(assistantAvatar);
-                audioIcon = document.createElement('span');
-                audioIcon.className = 'audio-control';
-                audioIcon.textContent = '▶️';
-                audioIcon.dataset.audioUrl = audioUrl;
-                audioIcon.dataset.messageId = messageId;
-                assistantDiv.appendChild(audioIcon);
-                const textSpan = document.createElement('span');
-                textSpan.textContent = responseText || 'No response';
-                assistantDiv.appendChild(textSpan);
-                messagesWrapper.appendChild(assistantDiv);
-                console.log('Assistant message appended');
-                messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
-                return audioIcon;
-            } catch (e) {
-                console.error('Assistant message append error:', e);
-                alert('Failed to display assistant message. Please try again.');
-                return null;
-            }
-        }
-
-        // Handle audio playback
-        async function handleAudioPlayback(audioUrl, messageId, audioIcon) {
-            const normalizedAudioUrl = audioUrl.startsWith('/') ? `${BASE_URL}${audioUrl}` : audioUrl;
-            console.log('Audio URL:', normalizedAudioUrl);
-
-            // Test audio URL
-            try {
-                console.log('Testing audio URL...');
-                const audioTestResponse = await fetch(normalizedAudioUrl, { method: 'HEAD' });
-                console.log('Audio URL test status:', audioTestResponse.status);
-                if (!audioTestResponse.ok) {
-                    throw new Error(`Audio URL inaccessible: HTTP ${audioTestResponse.status}`);
-                }
-            } catch (e) {
-                console.error('Audio URL test failed:', e);
-                alert('Failed to process audio. Please speak again.');
-                return;
-            }
-
-            // Play audio
-            try {
-                console.log('Attempting to play audio:', normalizedAudioUrl);
-                const audio = new Audio(normalizedAudioUrl);
-                audioElements[messageId] = audio;
-                audio.play().catch(err => {
-                    console.error('Audio playback failed:', err);
-                    alert('Failed to play audio. Please try again.');
-                    if (audioIcon) audioIcon.textContent = '▶️';
-                });
-                if (audioIcon) audioIcon.textContent = '⏸️';
-                console.log('Audio play initiated, icon set to pause');
-
-                // Handle play/pause
-                audioIcon.addEventListener('click', () => {
-                    const messageId = audioIcon.dataset.messageId;
-                    const audio = audioElements[messageId];
-                    console.log('Play/pause clicked, messageId:', messageId, 'audio.paused:', audio.paused);
-                    if (audio.paused) {
-                        Object.values(audioElements).forEach(otherAudio => {
-                            if (otherAudio !== audio && !otherAudio.paused) {
-                                otherAudio.pause();
-                                const otherId = Object.keys(audioElements).find(key => audioElements[key] === otherAudio);
-                                const otherIcon = document.querySelector(`.audio-control[data-message-id="${otherId}"]`);
-                                if (otherIcon) otherIcon.textContent = '▶️';
-                                console.log('Paused other audio, messageId:', otherId);
-                            }
-                        });
-                        audio.play().catch(err => {
-                            console.error('Manual playback failed:', err);
-                            alert('Failed to play audio. Please try again.');
-                            audioIcon.textContent = '▶️';
-                        });
-                        audioIcon.textContent = '⏸️';
-                        console.log('Playing audio, icon set to pause');
-                    } else {
-                        audio.pause();
-                        audioIcon.textContent = '▶️';
-                        console.log('Paused audio, icon set to play');
-                    }
-                });
-
-                // Update icon when audio ends
-                audio.addEventListener('ended', () => {
-                    audioIcon.textContent = '▶️';
-                    console.log('Audio ended, icon set to play');
-                });
-            } catch (e) {
-                console.error('Audio setup error:', e);
-                alert('Failed to set up audio. Please try again.');
-            }
-        }
-
-        // Send audio to backend
-        async function sendAudio() {
-            console.log('Sending audio to backend...');
-            displayLoading(true);
-            Object.values(audioElements).forEach(audio => {
-                if (!audio.paused) {
-                    console.log('Pausing audio:', audio.src);
-                    audio.pause();
-                    const messageId = Object.keys(audioElements).find(key => audioElements[key] === audio);
-                    const icon = document.querySelector(`.audio-control[data-message-id="${messageId}"]`);
-                    if (icon) icon.textContent = '▶️';
-                }
-            });
-
-            if (audioChunks.length === 0) {
-                displayLoading(false);
-                alert('No audio recorded. Please speak again.');
-                return;
-            }
-
-            const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm';
-            console.log('Audio chunks:', audioChunks.length, 'MIME type:', mimeType);
-            const audioBlob = new Blob(audioChunks, { type: mimeType });
-            console.log('Audio blob size:', audioBlob.size, 'bytes');
-            const formData = new FormData();
-            formData.append('file', audioBlob, `recording.${mimeType.split('/')[1]}`);
-            formData.append('messages', JSON.stringify(messages));
-            console.log('FormData prepared, messages:', messages);
-
-            try {
-                console.log('State before fetch:', { messagesLength: messages.length, audioChunksLength: audioChunks.length });
-                const response = await fetch(`${BASE_URL}/process_audio`, {
-                    method: 'POST',
-                    body: formData
-                });
-                console.log('Fetch response status:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    let errorData;
-                    try {
-                        errorData = await response.json();
-                        console.error('Error response:', errorData);
-                    } catch (e) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    throw new Error(errorData.detail || `HTTP ${response.status}`);
-                }
-
-                let data;
-                try {
-                    data = await response.json();
-                    console.log('Backend response:', data);
-                } catch (e) {
-                    console.error('JSON parse error:', e);
-                    throw new Error('Invalid JSON response from server');
-                }
-
-                if (!data.transcript || !data.response || !data.audio_url) {
-                    console.error('Incomplete response:', data);
-                    throw new Error('Incomplete response from server');
-                }
-
-                messages = data.messages || [];
-                console.log('Updated messages:', messages);
-
-                displayUserMessage(data.transcript);
-                const audioIcon = displayAssistantMessage(data.response, data.audio_url, messages.length - 1);
-                if (audioIcon) {
-                    await handleAudioPlayback(data.audio_url, messages.length - 1, audioIcon);
-                }
-            } catch (err) {
-                console.error('Error processing audio:', err);
-                alert('Failed to process audio. Please speak again.');
-            } finally {
-                if (Object.keys(audioElements).length > 10) {
-                    console.log('Cleaning up old audio elements');
-                    audioElements = {};
-                }
-                displayLoading(false);
-            }
-        }
-
-        // Handle question click
-        async function askQuestion(question) {
-            console.log('Asking question:', question);
-            displayLoading(true);
-            Object.values(audioElements).forEach(audio => {
-                if (!audio.paused) {
-                    console.log('Pausing audio:', audio.src);
-                    audio.pause();
-                    const messageId = Object.keys(audioElements).find(key => audioElements[key] === audio);
-                    const icon = document.querySelector(`.audio-control[data-message-id="${messageId}"]`);
-                    if (icon) icon.textContent = '▶️';
-                }
-            });
-
-            try {
-                messages.push({"role": "user", "content": question});
-                const response = await fetch(`${BASE_URL}/ask_question`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        question: question,
-                        messages: messages
-                    })
-                });
-                console.log('Fetch response status:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    let errorData;
-                    try {
-                        errorData = await response.json();
-                        console.error('Error response:', errorData);
-                    } catch (e) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    throw new Error(errorData.detail || `HTTP ${response.status}`);
-                }
-
-                let data;
-                try {
-                    data = await response.json();
-                    console.log('Backend response:', data);
-                } catch (e) {
-                    console.error('JSON parse error:', e);
-                    throw new Error('Invalid JSON response from server');
-                }
-
-                if (!data.response || !data.audio_url) {
-                    console.error('Incomplete response:', data);
-                    throw new Error('Incomplete response from server');
-                }
-
-                messages = data.messages || [];
-                console.log('Updated messages:', messages);
-
-                displayUserMessage(question);
-                const audioIcon = displayAssistantMessage(data.response, data.audio_url, messages.length - 1);
-                if (audioIcon) {
-                    await handleAudioPlayback(data.audio_url, messages.length - 1, audioIcon);
-                }
-            } catch (err) {
-                console.error('Error asking question:', err);
-                alert('Failed to process question. Please try again.');
-            } finally {
-                displayLoading(false);
-            }
-        }
-
-        // Add click listeners to question cards
-        questionPanel.querySelectorAll('.question-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const question = card.dataset.question;
-                askQuestion(question);
-            });
-        });
-    </script>
+    // Focus on load
+    textInput.focus();
+  </script>
 </body>
 </html>

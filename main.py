@@ -1,280 +1,40 @@
-# import os
-# from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-# from fastapi.middleware.cors import CORSMiddleware
-# import speech_recognition as sr
-# from gtts import gTTS
-# from openai import AzureOpenAI
-# from dotenv import load_dotenv
-# import uuid
-# import json
-# from typing import List, Dict
-# import logging
-# from pydub import AudioSegment
-
-# # Set up logging
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
-# # Load environment variables
-# load_dotenv()
-
-# AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-# AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-# AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
-
-# # Initialize FastAPI app
-# app = FastAPI()
-
-# # Enable CORS
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# # Initialize Azure OpenAI client
-# client = AzureOpenAI(
-#     api_key=AZURE_OPENAI_API_KEY,
-#     api_version=AZURE_OPENAI_API_VERSION,
-#     azure_endpoint=AZURE_OPENAI_ENDPOINT
-# )
-
-# # Directory to store audio responses
-# AUDIO_DIR = "static/audio"
-# os.makedirs(AUDIO_DIR, exist_ok=True)
-
-# def convert_to_wav(input_path: str, output_path: str) -> str:
-#     logger.info(f"Converting audio from {input_path} to {output_path}")
-#     try:
-#         audio = AudioSegment.from_file(input_path)
-#         audio = audio.set_channels(1).set_frame_rate(16000)  # Mono, 16kHz for speech_recognition
-#         audio.export(output_path, format="wav")
-#         logger.info(f"Converted audio to WAV: {output_path}")
-#         return output_path
-#     except Exception as e:
-#         logger.error(f"Audio conversion error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Audio conversion error: {str(e)}")
-
-# def speech_to_text(audio_path: str) -> str:
-#     logger.info(f"Processing audio file: {audio_path}")
-#     recognizer = sr.Recognizer()
-#     try:
-#         with sr.AudioFile(audio_path) as source:
-#             audio_data = recognizer.record(source)
-#             transcript = recognizer.recognize_google(audio_data)
-#             logger.info(f"Transcript: {transcript}")
-#             return transcript
-#     except sr.UnknownValueError:
-#         logger.error("Speech recognition could not understand audio")
-#         raise HTTPException(status_code=400, detail="Could not understand audio")
-#     except sr.RequestError as e:
-#         logger.error(f"Speech recognition error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Speech recognition error: {str(e)}")
-#     except Exception as e:
-#         logger.error(f"Unexpected error in speech_to_text: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
-# def text_to_speech(text: str, audio_file_path: str) -> str:
-#     logger.info(f"Generating audio for text: {text[:50]}...")
-#     try:
-#         tts = gTTS(text=text, lang='en')
-#         tts.save(audio_file_path)
-#         logger.info(f"Audio saved to: {audio_file_path}")
-#         return audio_file_path
-#     except Exception as e:
-#         logger.error(f"Text-to-speech error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Text-to-speech error: {str(e)}")
-
-# # def get_openai_response(messages: List[Dict[str, str]]) -> str:
-# #     logger.info(f"Sending messages to OpenAI: {messages}")
-# #     system_message = [{"role": "system", "content": "You are a helpful AI chatbot that answers questions asked by the user."}]
-# #     try:
-# #         response = client.chat.completions.create(
-# #             model="gpt-35-turbo",
-# #             messages=system_message + messages
-# #         )
-# #         response_text = response.choices[0].message.content
-# #         logger.info(f"OpenAI response: {response_text[:50]}...")
-# #         return response_text
-# #     except Exception as e:
-# #         logger.error(f"OpenAI API error: {str(e)}")
-# #         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
-
-# # Read resume text from file
-# def load_resume_text(file_path: str = "resume.txt") -> str:
-#     try:
-#         with open(file_path, "r", encoding="utf-8") as file:
-#             resume_text = file.read().strip()
-#         logger.info("Successfully loaded resume text")
-#         return resume_text
-#     except FileNotFoundError:
-#         logger.error(f"Resume file not found: {file_path}")
-#         raise HTTPException(status_code=500, detail="Resume file not found")
-#     except Exception as e:
-#         logger.error(f"Error reading resume file: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Error reading resume file: {str(e)}")
-
-# # Load resume text once at module level
-# RESUME_TEXT = load_resume_text()
-
-# def get_openai_response(messages: List[Dict[str, str]]) -> str:
-#     logger.info(f"Sending messages to OpenAI: {messages}")
-#     system_prompt = f"""
-# You are a voice bot representing me, answering questions as I would based on my resume. Use the following resume information to provide accurate, personal responses:
-
-# {RESUME_TEXT}
-
-# Instructions:
-# - Answer questions as if you are me, using a conversational, intuitive tone in simple English.
-# - Reflect my personality and experiences from the resume.
-# - Only respond to questions about my life, skills, experiences, or personal traits (e.g., life story, superpower, growth areas, misconceptions, boundaries).
-# - If the question is unrelated or inappropriate, politely say: "I'd prefer to focus on questions about my background and experiences."
-# - Keep responses concise, natural, and engaging, as if I'm speaking in an interview.
-# - Avoid fabricating details not in the resume; if unsure, give a general response based on the resume context.
-# """
-#     system_message = [{"role": "system", "content": system_prompt}]
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-35-turbo",
-#             messages=system_message + messages,
-#             temperature=0.7,  # Balanced creativity for natural responses
-#             max_tokens=500    # Limit response length for voice output
-#         )
-#         response_text = response.choices[0].message.content.strip()
-#         logger.info(f"OpenAI response: {response_text[:50]}...")
-#         return response_text
-#     except Exception as e:
-#         logger.error(f"OpenAI API error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
-
-# @app.post("/process_audio")
-# async def process_audio(file: UploadFile = File(...), messages: str = Form(default="[]")):
-#     logger.info("Received request to /process_audio")
-#     try:
-#         # Parse messages from JSON string
-#         try:
-#             messages_list = json.loads(messages)
-#             if not isinstance(messages_list, list):
-#                 raise ValueError("Messages must be a list")
-#             logger.info(f"Parsed messages: {messages_list}")
-#         except json.JSONDecodeError as e:
-#             logger.error(f"Invalid messages JSON: {str(e)}")
-#             raise HTTPException(status_code=422, detail=f"Invalid messages format: {str(e)}")
-
-#         # Save uploaded audio file
-#         audio_id = str(uuid.uuid4())
-#         temp_audio_path = f"temp_audio_{audio_id}.webm"  # Assume WebM initially
-#         wav_audio_path = f"temp_audio_{audio_id}.wav"
-#         logger.info(f"Saving audio to: {temp_audio_path}")
-#         try:
-#             with open(temp_audio_path, "wb") as f:
-#                 content = await file.read()
-#                 if not content:
-#                     logger.error("Received empty audio file")
-#                     raise HTTPException(status_code=422, detail="Empty audio file")
-#                 f.write(content)
-#         except Exception as e:
-#             logger.error(f"Error saving audio file: {str(e)}")
-#             raise HTTPException(status_code=500, detail=f"Error saving audio file: {str(e)}")
-
-#         # Convert to WAV
-#         convert_to_wav(temp_audio_path, wav_audio_path)
-
-#         # Speech to text
-#         transcript = speech_to_text(wav_audio_path)
-
-#         # Update messages with user input
-#         messages_list.append({"role": "user", "content": transcript})
-
-#         # Get OpenAI response
-#         response_text = get_openai_response(messages_list)
-
-#         # Text to speech
-#         response_audio_path = os.path.join(AUDIO_DIR, f"response_{audio_id}.mp3")
-#         audio_url = response_audio_path.replace("\\", '/')
-#         text_to_speech(response_text, response_audio_path)
-        
-        
-#         # audio_url = response_audio_path.replace("\\", '/')
-#         # audio_url = f"/backend/{audio_url}"
-#         print(audio_url)
-
-#         # Return response
-#         return {
-#             "transcript": transcript,
-#             "response": response_text,
-#             "audio_url": '/'+audio_url,
-#             "messages": messages_list + [{"role": "assistant", "content": response_text}]
-#         }
-#     except HTTPException as e:
-#         logger.error(f"Error processing request: {str(e)}")
-#         raise
-#     finally:
-#         # Clean up temporary audio files
-#         for path in [temp_audio_path, wav_audio_path]:
-#             if os.path.exists(path):
-#                 try:
-#                     os.remove(path)
-#                     logger.info(f"Cleaned up temporary file: {path}")
-#                 except Exception as e:
-#                     logger.error(f"Error cleaning up temporary file: {str(e)}")
-
-# # Serve static audio files
-# from fastapi.staticfiles import StaticFiles
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# from fastapi.responses import HTMLResponse
-
-# @app.get("/", response_class=HTMLResponse)
-# async def serve_index():
-#     with open("static/index.html", "r") as f:
-#         return f.read()
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-
 import os
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-from fastapi.middleware.cors import CORSMiddleware
-import speech_recognition as sr
-from gtts import gTTS
-from openai import AzureOpenAI
-from dotenv import load_dotenv
 import uuid
 import json
-from typing import List, Dict
 import logging
-from pydub import AudioSegment
-from pydantic import BaseModel
-import assemblyai as aai
-import pyttsx3
-from google.cloud import texttospeech
+from typing import List, Dict
 
-# Set up logging
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from openai import OpenAI
+from fastapi.responses import FileResponse
+
+# -----------------------------------------
+# LOGGING SETUP
+# -----------------------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
+# -----------------------------------------
+# ENV + OPENAI CLIENT
+# -----------------------------------------
 load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
-ASSEMBLY_AI_APIKEY_1 = os.getenv("ASSEMBLY_AI_APIKEY_1")
-ASSEMBLY_AI_APIKEY_2 = os.getenv("ASSEMBLY_AI_APIKEY_2")
-ASSEMBLY_AI_APIKEY_3 = os.getenv("ASSEMBLY_AI_APIKEY_3")
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY is missing in .env")
 
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Initialize FastAPI app
+# -----------------------------------------
+# FASTAPI app
+# -----------------------------------------
 app = FastAPI()
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -283,338 +43,436 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Azure OpenAI client
-client = AzureOpenAI(
-    api_key=AZURE_OPENAI_API_KEY,
-    api_version=AZURE_OPENAI_API_VERSION,
-    azure_endpoint=AZURE_OPENAI_ENDPOINT
-)
-
-# Directory to store audio responses
+# -----------------------------------------
+# AUDIO DIRECTORY
+# -----------------------------------------
 AUDIO_DIR = "static/audio"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
-def convert_to_wav(input_path: str, output_path: str) -> str:
-    logger.info(f"Converting audio from {input_path} to {output_path}")
-    try:
-        audio = AudioSegment.from_file(input_path)
-        audio = audio.set_channels(1).set_frame_rate(16000)  # Mono, 16kHz for speech_recognition
-        audio.export(output_path, format="wav")
-        logger.info(f"Converted audio to WAV: {output_path}")
-        return output_path
-    except Exception as e:
-        logger.error(f"Audio conversion error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Audio conversion error: {str(e)}")
-
-# def speech_to_text(audio_path: str) -> str:
-#     logger.info(f"Processing audio file: {audio_path}")
-#     recognizer = sr.Recognizer()
+# -----------------------------------------
+# LOAD RESUME
+# -----------------------------------------
+# def load_resume_text(file_path="resume.txt") -> str:
 #     try:
-#         with sr.AudioFile(audio_path) as source:
-#             audio_data = recognizer.record(source)
-#             transcript = recognizer.recognize_google(audio_data)
-#             logger.info(f"Transcript: {transcript}")
-#             return transcript
-#     except sr.UnknownValueError:
-#         logger.error("Speech recognition could not understand audio")
-#         raise HTTPException(status_code=400, detail="Could not understand audio")
-#     except sr.RequestError as e:
-#         logger.error(f"Speech recognition error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Speech recognition error: {str(e)}")
+#         with open(file_path, "r", encoding="utf-8") as f:
+#             return f.read().strip()
 #     except Exception as e:
-#         logger.error(f"Unexpected error in speech_to_text: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+#         logger.error(f"Resume load error: {e}")
+#         raise HTTPException(status_code=500, detail="Failed to load resume file")
 
+# RESUME_TEXT = load_resume_text()
+
+# -----------------------------------------
+# WHISPER STT (NO FFMPEG NEEDED)
+# -----------------------------------------
 def speech_to_text(audio_path: str) -> str:
-    logger.info(f"Processing audio file: {audio_path}")
-    
-    # List of AssemblyAI API keys (replace with actual environment variables or values)
-    api_keys = [
-        ASSEMBLY_AI_APIKEY_1,
-        ASSEMBLY_AI_APIKEY_2,
-        ASSEMBLY_AI_APIKEY_3
-    ]
-    
-    # Initialize recognizer for fallback
-    recognizer = sr.Recognizer()
-    
-    # Try AssemblyAI with multiple API keys
-    for i, api_key in enumerate(api_keys):
-        try:
-            logger.info(f"Attempting transcription with AssemblyAI API key {i + 1}")
-            aai.settings.api_key = api_key
-            config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
-            transcriber = aai.Transcriber(config=config)
-            transcript = transcriber.transcribe(audio_path)
-            if transcript.status == aai.TranscriptStatus.COMPLETED:
-                logger.info(f"AssemblyAI transcription successful with key {i + 1}: {transcript.text}")
-                return transcript.text
-            elif transcript.status == "error":
-                logger.warning(f"AssemblyAI transcription failed with key {i + 1}: {transcript.error}")
-                continue
-        except Exception as e:
-            logger.error(f"Error with AssemblyAI key {i + 1}: {str(e)}")
-            continue
-    
-    # Fallback to speech_recognition (Google Speech Recognition) if all API keys fail
-    logger.info("Falling back to Google Speech Recognition")
+    logger.info(f"Transcribing with Whisper: {audio_path}")
     try:
-        with sr.AudioFile(audio_path) as source:
-            audio_data = recognizer.record(source)
-            transcript = recognizer.recognize_google(audio_data)
-            logger.info(f"Google Speech Recognition transcript: {transcript}")
-            return transcript
-    except sr.UnknownValueError:
-        logger.error("Google Speech Recognition could not understand audio")
-        raise HTTPException(status_code=400, detail="Could not understand audio")
-    except sr.RequestError as e:
-        logger.error(f"Google Speech Recognition error: {str(e)}")
+        with open(audio_path, "rb") as f:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f,
+                language="en"  
+            )
+        return transcript.text
+    except Exception as e:
+        logger.error(f"Whisper STT error: {e}")
         raise HTTPException(status_code=500, detail=f"Speech recognition error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Unexpected error in speech_to_text fallback: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-    
-    # Fallback to speech_recognition (Google Speech Recognition) if all API keys fail
-    logger.info("Falling back to Google Speech Recognition")
+
+# -----------------------------------------
+# OPENAI TTS
+# -----------------------------------------
+def text_to_speech(text: str, save_path: str) -> str:
+    logger.info("Generating TTS using OpenAI")
     try:
-        with sr.AudioFile(audio_path) as source:
-            audio_data = recognizer.record(source)
-            transcript = recognizer.recognize_google(audio_data)
-            logger.info(f"Google Speech Recognition transcript: {transcript}")
-            return transcript
-    except sr.UnknownValueError:
-        logger.error("Google Speech Recognition could not understand audio")
-        raise HTTPException(status_code=400, detail="Could not understand audio")
-    except sr.RequestError as e:
-        logger.error(f"Google Speech Recognition error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Speech recognition error: {str(e)}")
+        response = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice="alloy",
+            input=text
+        )
+
+        with open(save_path, "wb") as f:
+            f.write(response.read())
+        return save_path
     except Exception as e:
-        logger.error(f"Unexpected error in speech_to_text fallback: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-    
-def text_to_speech(text: str, audio_file_path: str) -> str:
-    logger.info(f"Generating audio for text: {text[:50]}...")
-    try:
-        tts = gTTS(text=text, lang='en',)
-        tts.save(audio_file_path)
-        logger.info(f"Audio saved to: {audio_file_path}")
-        return audio_file_path
-    except Exception as e:
-        logger.error(f"Text-to-speech error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Text-to-speech error: {str(e)}")
+        logger.error(f"TTS error: {e}")
+        raise HTTPException(status_code=500, detail=f"TTS error: {str(e)}")
 
-# def text_to_speech(text: str, audio_file_path: str) -> str:
-#     logger.info(f"Generating audio for text: {text[:50]}...")
-#     try:
-#         # Initialize the Google Cloud TTS client
-#         client = texttospeech.TextToSpeechClient()
-
-#         # Set the voice parameters (select a male voice, e.g., 'en-US-Wavenet-D')
-#         voice = texttospeech.VoiceSelectionParams(
-#             language_code="en-US",
-#             name="en-US-Wavenet-D",  # Male voice option (Wavenet-D is a male voice)
-#             ssml_gender=texttospeech.SsmlVoiceGender.MALE
-#         )
-
-#         # Configure the audio output
-#         audio_config = texttospeech.AudioConfig(
-#             audio_encoding=texttospeech.AudioEncoding.MP3
-#         )
-
-#         # Generate the audio
-#         synthesis_input = texttospeech.SynthesisInput(text=text)
-#         response = client.synthesize_speech(
-#             input=synthesis_input, voice=voice, audio_config=audio_config
-#         )
-
-#         # Save the audio to the file
-#         with open(audio_file_path, "wb") as out_file:
-#             out_file.write(response.audio_content)
-#         logger.info(f"Audio saved to: {audio_file_path}")
-#         return audio_file_path
-#     except Exception as e:
-#         logger.error(f"Text-to-speech error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Text-to-speech error: {str(e)}")
-
-# Read resume text from file
-def load_resume_text(file_path: str = "resume.txt") -> str:
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            resume_text = file.read().strip()
-        logger.info("Successfully loaded resume text")
-        return resume_text
-    except FileNotFoundError:
-        logger.error(f"Resume file not found: {file_path}")
-        raise HTTPException(status_code=500, detail="Resume file not found")
-    except Exception as e:
-        logger.error(f"Error reading resume file: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error reading resume file: {str(e)}")
-
-# Load resume text once at module level
-RESUME_TEXT = load_resume_text()
-
+# -----------------------------------------
+# CHAT COMPLETION
+# -----------------------------------------
 def get_openai_response(messages: List[Dict[str, str]]) -> str:
-    logger.info(f"Sending messages to OpenAI: {messages}")
+#     system_prompt = f"""
+# You are a voice bot representing me, answering based on my resume:
+
+# {RESUME_TEXT}
+
+# Instructions:
+# - Answer like me, in simple conversational English.
+# - Only answer about my background, skills, personality, experience.
+# - If unrelated: say "I'd prefer to focus on questions about my background and experiences."
+# - Keep it short, natural, personal.
+# - Never invent details not in my resume.
+
+# Special Case: If asked "Tell me about yourself" or similar:
+# - Give a 4–6 line clean intro:
+#   - Who I am
+#   - My skills
+#   - Relevant projects
+#   - What I'm looking for next
+# """
     system_prompt = f"""
-        You are a voice bot representing me, answering questions as I would based on my resume. Use the following resume information to provide accurate, personal responses:
+        You are a voice bot representing Vasu Gadde. Your job is to answer recruiter-style questions exactly how Vasu would answer in a real interview, based strictly on the information below.
 
-        {RESUME_TEXT}
+    ------------------------------------------------------------------------
+    Vasu’s Professional Profile (Complete Verified Information)
+    ------------------------------------------------------------------------
 
-        Instructions:
-        - Answer questions as if you are me, using a conversational, intuitive tone in simple English.
-        - Reflect my personality and experiences from the resume.
-        - Only respond to questions about my life, skills, experiences, or personal traits (e.g., life story, superpower, growth areas, misconceptions, boundaries).
-        - If the question is unrelated or inappropriate, politely say: "I'd prefer to focus on questions about my background and experiences."
-        - Keep responses concise, natural, and engaging, as if I'm speaking in an interview.
-        - Avoid fabricating details not in the resume; if unsure, give a general response based on the resume context.
+    Vasu Ramesh Gadde  
+    Data Scientist | AI/ML Engineer | Data Analyst  
+    BSc Information Technology, University of Mumbai (2021–2024)  
 
-        Special Case:
-        - If asked “Tell me about yourself” (or similar variants like “Introduce yourself” or “Walk me through your profile”), respond with a confident, structured introduction covering:
-        - Who I am professionally (education or title)
-        - My key skills and strengths
-        - Projects or achievements that show my capabilities
-        - What I’m currently looking for or excited about next
-        - Keep it to 4–6 lines, casual but clear.
-        """
-    system_message = [{"role": "system", "content": system_prompt}]
+    Strong in: Python, ML, GenAI, REST APIs, backend engineering, data pipelines, vector databases, RAG, LLM apps, and real-time data systems.
+
+    ------------------------------------------------------------------------
+    Current Role – AI/ML Engineer (JHS Associates & LLP)  
+    (Last 6 months – present)
+    ------------------------------------------------------------------------
+
+    1. **AI-Powered Recruitment System (End-to-End)**
+    - HR uploads resumes → processed → converted to embeddings (Pinecone)
+    - Job role + description → semantic matching + OpenAI filtering
+    - Sends WhatsApp messages to shortlisted candidates using Infobip
+    - Webhook handles candidate replies + interview scheduling
+    - HR panels for tracking shortlisted/selected/rejected/joined
+    - Gmail-style analytics for pipeline health
+    **Tech:** FastAPI, Python, MongoDB, Pinecone, OpenAI, Infobip, HTML/CSS/JS
+
+    2. **Timesheet Application**
+    - Employees submit daily work logs
+    - Managers approve/reject
+    - Admin dashboard with analytics
+    - Future: chatbot-assisted timesheet entry
+
+    3. **Stockeye (Audit App)**
+    - Auditors fill daily audit tasks
+    - Auto captures selfie + geolocation
+    - Sends checklist report to managers
+    - Recon module compares expected vs filled data
+    - Updated admin panel delivered to client
+
+    4. **Company-wide PowerBI Dashboards**
+    - Built dashboards for HR, IT, Accounts, Timesheet analytics
+    - Integrated workflows & KPI views
+
+    5. **Workflow Automation**
+    - Automated PDF → Excel → reconciliation pipelines
+    - Automated data cleaning & report generation
+
+    6. **Chatbot Development (RAG)**
+    - HR policy chatbot
+    - Audit manual chatbot
+    - Company data chatbot (Work-in-progress)
+
+    7. **Email Automation Tool**
+    - Streamlit app used by founders for mass campaign emails
+
+    8. **Regulatory Intelligence System (RIS)**
+    - Fetch news from ET, TOI, etc., using SerpAPI
+    - Daily scheduled at 10 AM via GitHub Actions
+    - Extracts relevant updates + emails to founder
+
+    9. **Upcoming Projects**
+    - “JHS ChatGPT” – internal knowledge bot using embeddings
+    - Website chatbot
+    - Audit/HR manual automation
+    - Data reconciliation automation
+
+    ------------------------------------------------------------------------
+    Past Experience – Machine Learning Intern (Supermoney Advisors)
+    ------------------------------------------------------------------------
+
+    1. Built **NLP and RAG systems** using OpenAI + Pinecone  
+    2. Designed **end-to-end pipelines** using Python and MongoDB  
+    3. Time-series forecasting for price trends  
+    4. Created policy-based “Insurance Agent Chatbot” with level-wise answering  
+    5. Extracted structured info from PDFs/DOCs  
+    6. Built backend APIs for finance-related Q&A
+
+    ------------------------------------------------------------------------
+    Projects (Personal + Academic)
+    ------------------------------------------------------------------------
+
+    1. **WhatsApp Chat Analyzer (Streamlit)**
+    - Chat statistics, timelines, heatmaps
+    - Wordclouds, emoji analysis
+    - Sentiment analysis, LDA topic modeling
+    - Response time analytics
+    - User-wise + Group-wise analysis
+
+    2. **GitaChatBot**
+    - FastAPI backend + Gemini
+    - RAG using FAISS + MongoDB + S3
+    - Login/registration system
+    - Answers based on spiritual text
+
+    3. **CryptoLab**
+    - FastAPI backend for crypto forecasting
+    - Binance API real-time data fetch
+    - LSTM model for BTC prediction
+    - Market sentiment classification  
+    - JWT auth + SMTP mailer
+
+    4. **Personal Research Assistant**
+    - LangChain + FAISS + Azure OpenAI
+    - Semantic search over research papers
+    - JWT auth + conversation storage
+
+    5. **Finance Quiz App**
+    - Adaptive finance quizzes using GPT
+    - Micro-learning modules
+
+    6. **AI-Powered Document Analyzer**
+    - PDF summarization (short/long)
+    - Document Q&A using Gemini
+
+    ------------------------------------------------------------------------
+    Soft Answers (Personality-Based)
+    ------------------------------------------------------------------------
+
+    Life Story:
+    - Curious about systems, data, and problem-solving.
+    - Passionate about backend + AI + automation.
+    - Grew through practical projects, APIs, and real business problems.
+
+    Superpower:
+    - Fast learner + adaptable.
+
+    Growth Areas:
+    - Advanced ML/AI depth  
+    - Communication/storytelling  
+    - Leadership/mentorship  
+
+    Misconception:
+    - Appears quiet initially but contributes strongly once comfortable.
+
+    How I push boundaries:
+    - Take on work slightly outside comfort zone; break down problems; experiment fast.
+
+    ------------------------------------------------------------------------
+    RESPONSE RULES
+    ------------------------------------------------------------------------
+
+    1. **Never hallucinate.**  
+    If the resume doesn’t contain info, give a general answer.
+
+    2. **Tone:**  
+    - conversational  
+    - confident  
+    - simple English  
+    - sounds like an actual candidate speaking  
+    - no robotic phrasing  
+
+    3. **If question is unrelated (personal, irrelevant, inappropriate):**  
+    Respond with:  
+    “I’d prefer to focus on questions about my background and experiences.”
+
+    4. **For recruiter-style questions, follow interview best practices.**
+
+    5. **Special Case → “Tell me about yourself”, “Introduce yourself”**  
+    Provide a clean 4–6 line introduction:
+    - who you are  
+    - what you do  
+    - key skills  
+    - notable projects  
+    - recent experience  
+    - what you're looking for next
+
+    6. **For “Explain your current role”, “Walk me through your experience”,  
+    “What are you doing at JHS?” → Use the JHS section above.**
+
+    7. **For “Explain your projects”, give structured, outcome-driven answers.**
+
+    8. **For “Why should we hire you?” → Combine skills + proof + impact.**
+
+    9. **ALWAYS stay within Vasu’s actual experience—do not invent.**
+
+    10. **Use clean Markdown formatting (short paragraphs, bullet points, and numbered lists) whenever it improves clarity.**
+
+    ------------------------------------------------------------------------
+    END OF SYSTEM PROMPT
+    ------------------------------------------------------------------------
+    """
+
     try:
         response = client.chat.completions.create(
-            model="gpt-35-turbo",
-            messages=system_message + messages,
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": system_prompt}] + messages,
             temperature=0.7,
             max_tokens=500
         )
-        response_text = response.choices[0].message.content.strip()
-        logger.info(f"OpenAI response: {response_text[:50]}...")
-        return response_text
+        return response.choices[0].message.content.strip()
+
     except Exception as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
+        logger.error(f"ChatCompletion error: {e}")
+        raise HTTPException(status_code=500, detail="OpenAI chat error")
+
+# -----------------------------------------
+# /process_audio
+# -----------------------------------------
+# @app.post("/process_audio")
+# async def process_audio(file: UploadFile = File(...), messages: str = Form(default="[]")):
+#     logger.info("Received /process_audio")
+
+#     try:
+#         # Parse message history
+#         try:
+#             messages_list = json.loads(messages)
+#             if not isinstance(messages_list, list):
+#                 raise ValueError
+#         except:
+#             raise HTTPException(status_code=422, detail="Invalid messages JSON format")
+
+#         # Save uploaded audio (WebM/WAV/anything Whisper accepts)
+#         audio_id = str(uuid.uuid4())
+#         audio_path = f"temp_{audio_id}.{file.filename.split('.')[-1]}"
+
+#         with open(audio_path, "wb") as f:
+#             data = await file.read()
+#             if not data:
+#                 raise HTTPException(status_code=422, detail="Empty audio file")
+#             f.write(data)
+
+#         # Whisper STT
+#         transcript = speech_to_text(audio_path)
+
+#         # Append transcript to conversation
+#         messages_list.append({"role": "user", "content": transcript})
+
+#         # Chat response
+#         response_text = get_openai_response(messages_list)
+
+#         # Generate TTS
+#         response_audio_path = os.path.join(AUDIO_DIR, f"response_{audio_id}.mp3")
+#         text_to_speech(response_text, response_audio_path)
+#         audio_url = "/" + response_audio_path.replace("\\", "/")
+
+#         # Cleanup temp file
+#         os.remove(audio_path)
+
+#         return {
+#             "transcript": transcript,
+#             "response": response_text,
+#             "audio_url": audio_url,
+#             "messages": messages_list + [{"role": "assistant", "content": response_text}]
+#         }
+
+#     except Exception as e:
+#         logger.error(f"process_audio error: {e}")
+#         raise
 
 @app.post("/process_audio")
 async def process_audio(file: UploadFile = File(...), messages: str = Form(default="[]")):
-    logger.info("Received request to /process_audio")
+    logger.info("Received /process_audio (AUDIO MODE)")
+
     try:
-        # Parse messages from JSON string
-        try:
-            messages_list = json.loads(messages)
-            if not isinstance(messages_list, list):
-                raise ValueError("Messages must be a list")
-            logger.info(f"Parsed messages: {messages_list}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid messages JSON: {str(e)}")
-            raise HTTPException(status_code=422, detail=f"Invalid messages format: {str(e)}")
+        # Load conversation history
+        messages_list = json.loads(messages)
+        if not isinstance(messages_list, list):
+            raise HTTPException(status_code=422, detail="Invalid messages format")
 
-        # Save uploaded audio file
+        # Save uploaded audio
         audio_id = str(uuid.uuid4())
-        temp_audio_path = f"temp_audio_{audio_id}.webm"  # Assume WebM initially
-        wav_audio_path = f"temp_audio_{audio_id}.wav"
-        logger.info(f"Saving audio to: {temp_audio_path}")
-        try:
-            with open(temp_audio_path, "wb") as f:
-                content = await file.read()
-                if not content:
-                    logger.error("Received empty audio file")
-                    raise HTTPException(status_code=422, detail="Empty audio file")
-                f.write(content)
-        except Exception as e:
-            logger.error(f"Error saving audio file: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error saving audio file: {str(e)}")
+        ext = file.filename.split('.')[-1]
+        audio_path = f"temp_{audio_id}.{ext}"
 
-        # Convert to WAV
-        convert_to_wav(temp_audio_path, wav_audio_path)
+        with open(audio_path, "wb") as f:
+            audio_bytes = await file.read()
+            if not audio_bytes:
+                raise HTTPException(status_code=422, detail="Empty audio file")
+            f.write(audio_bytes)
 
-        # Speech to text
-        transcript = speech_to_text(wav_audio_path)
-
-        # Update messages with user input
+        # Whisper → text
+        transcript = speech_to_text(audio_path)
         messages_list.append({"role": "user", "content": transcript})
 
-        # Get OpenAI response
+        # LLM → text answer
         response_text = get_openai_response(messages_list)
 
-        # Text to speech
+        # TTS → audio answer
         response_audio_path = os.path.join(AUDIO_DIR, f"response_{audio_id}.mp3")
-        audio_url = response_audio_path.replace("\\", '/')
         text_to_speech(response_text, response_audio_path)
+        audio_url = "/" + response_audio_path.replace("\\", "/")
 
-        # Return response
+        # Remove temp input
+        os.remove(audio_path)
+
         return {
             "transcript": transcript,
             "response": response_text,
-            "audio_url": '/' + audio_url,
+            "audio_url": audio_url,
             "messages": messages_list + [{"role": "assistant", "content": response_text}]
         }
-    except HTTPException as e:
-        logger.error(f"Error processing request: {str(e)}")
+
+    except Exception as e:
+        logger.error(f"/process_audio error: {e}")
         raise
-    finally:
-        # Clean up temporary audio files
-        for path in [temp_audio_path, wav_audio_path]:
-            if os.path.exists(path):
-                try:
-                    os.remove(path)
-                    logger.info(f"Cleaned up temporary file: {path}")
-                except Exception as e:
-                    logger.error(f"Error cleaning up temporary file: {str(e)}")
-                    
-# Pydantic model for the /ask_question request
+
+
+# -----------------------------------------
+# /ask_question (text only)
+# -----------------------------------------
 class AskQuestionRequest(BaseModel):
     question: str
     messages: List[Dict[str, str]]
 
+# @app.post("/ask_question")
+# async def ask_question(req: AskQuestionRequest):
+#     logger.info("Received /ask_question")
+
+#     messages = req.messages
+#     messages.append({"role": "user", "content": req.question})
+
+#     response_text = get_openai_response(messages)
+
+#     # TTS
+#     audio_id = str(uuid.uuid4())
+#     response_audio_path = os.path.join(AUDIO_DIR, f"response_{audio_id}.mp3")
+#     text_to_speech(response_text, response_audio_path)
+#     audio_url = "/" + response_audio_path.replace("\\", "/")
+
+#     return {
+#         "transcript": req.question,
+#         "response": response_text,
+#         "audio_url": audio_url,
+#         "messages": messages + [{"role": "assistant", "content": response_text}]
+#     }
+
 @app.post("/ask_question")
-async def ask_question(request: AskQuestionRequest):
-    logger.info("Received request to /ask_question")
-    try:
-        # Extract question and messages from request
-        question = request.question
-        messages_list = request.messages
-        if not question:
-            logger.error("No question provided")
-            raise HTTPException(status_code=422, detail="Question is required")
-        if not isinstance(messages_list, list):
-            logger.error("Messages must be a list")
-            raise HTTPException(status_code=422, detail="Messages must be a list")
-        logger.info(f"Question: {question}, Messages: {messages_list}")
+async def ask_question(req: AskQuestionRequest):
+    logger.info("Received /ask_question (TEXT MODE)")
 
-        # Get OpenAI response
-        response_text = get_openai_response(messages_list)
+    # Append user text to history
+    messages = req.messages
+    messages.append({"role": "user", "content": req.question})
 
-        # Text to speech
-        audio_id = str(uuid.uuid4())
-        response_audio_path = os.path.join(AUDIO_DIR, f"response_{audio_id}.mp3")
-        audio_url = response_audio_path.replace("\\", '/')
-        text_to_speech(response_text, response_audio_path)
+    # LLM response
+    response_text = get_openai_response(messages)
 
-        # Update messages
-        messages_list.append({"role": "assistant", "content": response_text})
+    # Return text-only response
+    return {
+        "transcript": req.question,
+        "response": response_text,
+        "audio_url": None,  # <-- IMPORTANT
+        "messages": messages + [{"role": "assistant", "content": response_text}]
+    }
 
-        # Return response
-        return {
-            "transcript": question,
-            "response": response_text,
-            "audio_url": '/' + audio_url,
-            "messages": messages_list
-        }
-    except HTTPException as e:
-        logger.error(f"Error processing question: {str(e)}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in ask_question: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-# Serve static audio files
-from fastapi.staticfiles import StaticFiles
+# -----------------------------------------
+# STATIC + FRONTEND
+# -----------------------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-from fastapi.responses import HTMLResponse
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    with open("static/index.html", "r") as f:
-        return f.read()
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    return FileResponse('static/index.html')

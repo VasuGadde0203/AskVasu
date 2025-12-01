@@ -1,92 +1,210 @@
-Vasu Ramesh Gadde
-Data Scientist | Machine Learning Intern
-vasugadde0203@gmail.com 8793306218 Mumbai, Maharashtra https://www.linkedin.com/in/vasu-gadde/ https://github.com/VasuGadde0203
-PROFILE PROFESSIONAL EXPERIENCE
-AI/ML Engineer with practical experience in Machine Learning Intern
-building machine learning projects using Python Supermoney Advisors Private Limited
-and frameworks like Pytorch, TensorFlow and 08/2024 – present | Mumbai, India
-Scikit-learn. Hands-on exposure to real-time data Developed NLP and RAG pipelines using OpenAI
-•
-processing, REST API integration, and data APIs and Pinecone for financial Q&A chatbots.
-visualization. Familiar with Generative AI concepts Designed end-to-end data pipelines using Python
-and basic cloud services on Azure and AWS. Strong and MongoDB for secure, real-time financial data
-foundation in model development, data processing.
-preprocessing, and backend API integration using Conducted predictive modeling and forecasting
-•
-FastAPI. Eager to contribute to solving business using time-series methods to estimate price
-problems with AI-driven solutions and continuously trends. Built interactive Power BI dashboards to
-grow in the field of machine learning. visualize model insights and KPIs for stakeholder
-reporting. Focused on model evaluation,
-PROJECTS preprocessing, and improving accuracy through
-iterative experimentation.
-CryptoLab: RealTime Data using Binance API - https://github.com/VasuGadde0203/CryptoLab_backend
-FastAPI + Binance API + Pinecone + Azure OpenAI + SKILLS
-MongoDB + SMTP
-Designed real-time data pipelines using Binance Programming & Data
-•
-APIs and MongoDB for financial data. Developed Python, Pandas, NumPy, SQL, Data Preprocessing
-LSTM-based forecasting models and integrated
-RAG systems using Pinecone and Azure OpenAI. Machine Learning & GenAI
-Applied generative AI for context-aware crypto Supervised/Unsupervised Learning, Deep Learning,
-insights. NLP, RAG, GPT-3/4, LangChain, OpenAI, Hugging
-Face
-Personal Research Assistant - https://github.com/VasuGadde0203/Personal-Research-Assistant
-FastAPI + LangChain + MongoDB + FAISS Cloud Platforms
-Built a semantic search engine for research papers Azure, AWS (EC2, S3, RDS, EventBridge)
-•
-using LangChain, FAISS, and Azure OpenAI.
-Integrated vector stores and embeddings for ML Frameworks
-accurate NLP-based information retrieval. TensorFlow, Scikit-learn, PyTorch (basics)
-Showcased end-to-end ML pipeline and GenAI-
-based summarization features. Deployment & DevOps
-Docker, Git, GitHub, FastAPI, GitHub Actions
-GitaChatBot – LLM-based Conversational - https://github.com/VasuGadde0203/GitaChatBot
-Agent Data Storage
-FastAPI + Gemini + MongoDB MongoDB, NoSQL
-Created a conversational agent using Gemini,
-•
-MongoDB, and FAISS for spiritual content Q&A. API Integration & Backend
-Utilized RAG architecture and document REST APIs, FastAPI, Flask
-embeddings for context-aware responses.
-Visualization & BI
-Demonstrated fine-tuned GenAI usage in a
-Power BI, Streamlit, Matplotlib, Seaborn
-culturally relevant application.
-Web Scraping
+VASU RAMESH GADDE
+AI/ML Engineer | Data Scientist | Backend Developer | Data Analyst
+Location: Mumbai, India
+Email: vasugadde0203@gmail.com | Phone: +91 87933 06218
+LinkedIn: https://www.linkedin.com/in/vasu-gadde/
+GitHub: https://github.com/VasuGadde0203
+
+PROFILE
+I am an AI/ML Engineer with hands-on experience building end-to-end AI products, real-time backend systems, and automation tools. I work mostly with Python, FastAPI, OpenAI, vector databases, MongoDB, and data/BI tools like Power BI. I’ve built production-grade systems for recruitment automation, audit workflows, timesheet management, chatbots, and document automation. I care about solving real business problems with AI, keeping things practical, and owning the solution from idea to deployment and analysis.
+
+--------------------------------------------------
+PROFESSIONAL EXPERIENCE
+--------------------------------------------------
+
+AI/ML Engineer – JHS Associates & LLP
+May 2024 – Present | Mumbai, India
+
+1) AI-Powered Recruitment System (End-to-End)
+- Designed and built an AI-driven recruitment platform where HRs upload resumes that get converted to embeddings and stored in Pinecone.
+- HR specifies role, score/threshold, and a natural-language description; the system ranks and matches candidates using OpenAI + Pinecone.
+- Filtered candidates are sent to OpenAI for further screening based on the role description.
+- Integrated WhatsApp via Infobip BSP to automatically message matched candidates that they’ve been shortlisted.
+- Built a webhook flow to converse with candidates, collect responses, and schedule interviews; all candidate states are stored in MongoDB.
+- HR dashboard shows: messaged candidates, scheduled interviews, selected/rejected/joined status, and candidate funnel analytics.
+- Added manual filters on role, location, qualification, and experience so HRs can refine results themselves.
+
+Tech stack: Python, FastAPI, OpenAI, Pinecone, MongoDB, Infobip, HTML/CSS/JS.
+
+2) Timesheet Application (Internal)
+- Built a timesheet system where employees record daily tasks and hours; data is stored in the database.
+- Reporting Managers can approve or reject timesheets for their team.
+- Created an admin view for the accounts/management team showing: who filled timesheets, total hours worked, projects worked on, and approval status.
+- Designed Power BI dashboards to analyze utilization, project-wise hours, and compliance.
+- Future work: integrating a chatbot so employees can describe their day in natural language and have the system auto-fill the timesheet.
+
+3) StockEye – Auditor Workflow System
+- Developed a tool for auditors to log their daily audit tasks along with a selfie and automatic location tagging.
+- Built features to generate and send checklist reports to reporting managers.
+- Implemented reconciliation logic between manager-provided data and auditor-submitted data.
+- Delivered this product to a client and now extending it with an admin panel for control, configuration, and checklist analytics.
+
+4) Power BI Dashboards and Analytics
+- Built multiple Power BI dashboards for:
+  - Timesheet analytics.
+  - IT department metrics.
+  - HR metrics.
+  - Accounts and finance-related reporting.
+- Combined these into an integrated view, giving leadership a single source of truth on people, projects, and work hours.
+
+5) Workflow Automation and Reconciliation
+- Automated repetitive workflows for clients: extracting data from PDFs and raw Excel files, cleaning them, performing matching and reconciliation, and generating ready-to-use outputs for the accounts and audit teams.
+- Focused on reliability and reducing manual effort for recurring tasks.
+
+6) Chatbot Development (Internal Knowledge Bots)
+- Built chatbots using RAG + LangChain that answer questions based on:
+  - HR policies.
+  - Audit manuals.
+  - Other internal documents.
+- The bots use embeddings, vector search, and domain-specific prompts to respond strictly based on company data.
+
+7) Email Automation Tool (Streamlit)
+- Created a Streamlit-based tool that automates sending emails to all clients for festivals or important occasions.
+- Designed the flow so my founder can quickly choose the template and client list and trigger bulk personalized emails without manual effort.
+
+8) Regulatory Intelligence System (RIS)
+- Built a scheduled system that fetches news from sources like Economic Times, Times of India, etc., using SerpAPI.
+- Every day between 7 AM and 10 AM, it collects news based on keywords provided by my founder, extracts key details, and emails a curated summary to him at 10 AM.
+- Scheduled and automated this via GitHub (cron/scheduled runs).
+
+Upcoming / In-Progress Work at JHS
+- “JHS ChatGPT”: an internal assistant that will answer questions based on company data (clients, work, processes). Data will be stored as embeddings in a vector database and queried via RAG.
+- Company chatbots: audit manual chatbot, HR manual chatbot, and website chatbot answering based on internal content.
+- Further automation and reconciliation pipelines for clients.
+- Internal refinement of applications like HR help desk and IT help desk.
+
+--------------------------------------------------
+
+Machine Learning Intern – Supermoney Advisors Private Limited
+Aug 2024 – Present | Mumbai, India
+
+- Built NLP and RAG pipelines using OpenAI APIs and Pinecone for financial Q&A chatbots.
+- Designed end-to-end data pipelines in Python with MongoDB for secure, real-time financial data processing.
+- Worked on predictive modeling and time-series forecasting to estimate price trends.
+- Built interactive Power BI dashboards to visualize model outputs and business KPIs.
+
+Specific projects as ML intern:
+1) Insurance Agent Assistant
+- Helped design an insurance virtual agent that answers user queries about policies.
+- The agent can:
+  - Answer basic FAQs about policies.
+  - Recommend suitable policy “suites” based on user income and requirements.
+  - Perform accurate premium/coverage-related calculations.
+- Used LLMs + rule logic for level-wise answers (basic → detailed → calculation-based).
+
+2) Document Information Extraction
+- Built pipelines to extract relevant fields from PDFs and DOCs (e.g., financial documents or policy docs).
+- Cleaned and structured extracted data so it could be used for downstream analytics and LLM-based answering.
+
+3) API Development
+- Built backend APIs in Python/FastAPI to expose model-based responses for client-facing interfaces.
+- Handled request parsing, validation, calling the underlying NLP/ML logic, and returning structured responses.
+
+--------------------------------------------------
+SELECTED PROJECTS
+--------------------------------------------------
+
+WhatsApp Chat Analyzer (Streamlit)
+- Built a Streamlit app that analyzes exported WhatsApp chats.
+- Features:
+  - Overall and per-user stats: total messages, words, media, links.
+  - Timelines: daily and monthly activity.
+  - Activity maps: busiest days, most active months, time-of-day heatmap.
+  - Most active users in group chats.
+  - WordCloud and top 20 common words (with custom Hinglish stop words).
+  - Emoji usage analysis and charts.
+  - Sentiment analysis over time using TextBlob.
+  - Average response time analysis and messages-by-hour breakdown.
+  - Topic modeling using LDA to discover themes in the chat.
+- Tech: Python, Streamlit, Pandas, NumPy, Matplotlib, Seaborn, Plotly, TextBlob, scikit-learn.
+
+GitaChatBot – Bhagavad Gita–Based Conversational Agent
+- Built a chatbot that answers life and philosophy questions inspired by the Bhagavad Gita.
+- Backend: FastAPI with Gemini model integration.
+- Data and storage:
+  - MongoDB for user data and conversations.
+  - FAISS for vector indexing of Gita embeddings.
+  - Amazon S3 for storing embeddings and FAISS indexes.
+- Features:
+  - User registration, login, and logout.
+  - Answers grounded in embedded Gita content and future additional books.
+  - Designed for future voice-interaction support.
+- Focus: RAG architecture, authentication, and scalable vector-based retrieval.
+
+CryptoLab Backend – Crypto Forecasting & Analytics
+- FastAPI backend for a cryptocurrency forecasting and analytics tool.
+- Fetches historical and real-time data from Binance via python-binance.
+- Uses an LSTM model to predict Bitcoin prices and analyze market sentiment (bullish, bearish, neutral).
+- Includes contact endpoint to handle user queries via SMTP (Gmail).
+- Implements JWT-based authentication for secure access to forecasting endpoints.
+- Designed for deployment using Gunicorn + Uvicorn + Nginx on AWS EC2.
+- Tech: FastAPI, TensorFlow, python-binance, Pandas, NumPy, PyJWT, SMTP, dotenv.
+
+Personal Research Assistant
+- Web-based research assistant with HTML/CSS/JS frontend and FastAPI backend.
+- Uses Azure OpenAI and SERPAPI to provide research-style answers with linked citations.
+- Stores conversation history in MongoDB and secures endpoints via JWT auth.
+- Features:
+  - /research endpoint for AI-powered research responses with sources.
+  - /store_conversations to save chats.
+  - Login via /auth/login to issue JWT tokens.
+- Designed for deployment with backend on Render and frontend on Netlify.
+
+Finance Quiz App (Streamlit + OpenAI)
+- Interactive finance quiz dashboard that:
+  - Asks initial questions to gauge user’s level in basic finance.
+  - Uses OpenAI to generate questions and explanations.
+  - Provides a micro-learning module based on the user’s performance.
+  - Asks follow-up questions for reinforcement and unlocks the next module.
+- Focus: adaptive learning flow and dynamic quiz generation.
+
+AI-Powered Document Analyzer (Streamlit + Gemini)
+- Streamlit app that lets users upload PDFs and:
+  - Get a short summary.
+  - Get a detailed summary.
+  - Ask questions about the content (Q&A).
+- Uses PDF text extraction and Gemini as the underlying model.
+- Focus: document ingestion, summarization, and retrieval-style question answering.
+
+(Other earlier projects)
+CryptoLab (full stack variant), Personal Research Assistant (earlier version), and GitaChatBot (earlier version) together show my comfort with FastAPI, vector search, LLMs, and real-world integrations.
+
+--------------------------------------------------
 EDUCATION
-BeautifulSoup, Selenium
+--------------------------------------------------
 BSc in Information Technology
-Vector Databases
-University of Mumbai
-Pinecone, ChromaDB, FAISS
-09/2021 – 05/2024 | Thane, India
-CERTIFICATES
-LANGUAGES
-Python Certification Hackerrank
-English
-Basic to Advanced Microsoft PowerBI
-Hindi
-Basic to Advanced Microsoft Excel
-Telugu
+University of Mumbai | 2021 – 2024 | Thane, India
 
+--------------------------------------------------
+SKILLS
+--------------------------------------------------
+Programming & Data: Python, SQL, Pandas, NumPy, data preprocessing.
+AI/ML & GenAI: Supervised/Unsupervised Learning, basic Deep Learning, NLP, RAG, GPT models, LangChain, OpenAI, Gemini, Hugging Face (basics).
+Frameworks: FastAPI, Streamlit, Flask, TensorFlow, Scikit-learn, PyTorch (basics).
+Databases: MongoDB, NoSQL, basic SQL/relational.
+Vector Databases & Search: Pinecone, FAISS, ChromaDB.
+Cloud & DevOps: Azure, AWS (EC2, S3, RDS basics), Docker, Git, GitHub Actions.
+BI & Visualization: Power BI, Matplotlib, Seaborn, Plotly, Streamlit dashboards.
+Automation: PDF/Excel parsing, reconciliation logic, email/WhatsApp automation, scheduled scripts.
+API Integration & Backend: REST APIs, webhooks, JWT auth, third-party APIs (Binance, SERPAPI, Infobip, etc.).
 
-1. What should we know about your life story in a few sentences?
-"I come from a background in IT and have always been passionate about understanding how things work behind the scenes. Over time, I developed a strong interest in data—how it can tell stories, solve problems, and drive decisions. I’ve worked on projects ranging from data visualization to API integration, and I’m continuously exploring new technologies to keep growing in this field."
+--------------------------------------------------
+PERSONAL STORY & REFLECTIONS (FOR BEHAVIORAL QUESTIONS)
+--------------------------------------------------
 
-2. What’s your #1 superpower?
-"My superpower is adaptability. I learn quickly and thrive in situations where I need to figure things out fast—whether it's learning a new tool, debugging a tough issue, or switching roles on a team."
+Life story in a few sentences
+I come from an IT background and got hooked on how systems and data work behind the scenes. Over time I moved from just “coding” to building full products that solve real problems—like recruitment, audits, and automation for teams that actually use my tools daily. I enjoy combining AI, backend engineering, and data to build things that are useful, not just theoretical.
 
-3. What are the top 3 areas you’d like to grow in?
+My #1 superpower
+My superpower is end-to-end ownership. I’m comfortable taking a problem from an idea to a working product: understanding requirements, designing the architecture, building the backend and AI pipeline, wiring up dashboards or a simple frontend, and then iterating based on feedback.
 
-Advanced Machine Learning & AI Concepts – to deepen my technical capabilities.
+Top 3 areas I want to grow in
+1) Advanced machine learning and deep learning concepts, including more complex architectures and MLOps.
+2) Communication and storytelling with data and product outcomes, especially for non-technical stakeholders.
+3) Leadership and mentoring, so I can drive projects and help others grow instead of just solving everything myself.
 
-Effective Communication & Storytelling with Data – to better present insights to non-technical stakeholders.
+Common misconception about me
+People sometimes think I’m quiet or reserved, especially early in a project. In reality, I like to observe first, understand the context, and then contribute. Once I’m comfortable and clear on the problem, I’m very active with ideas, debugging, and collaboration.
 
-Leadership & Mentoring – to contribute more strategically to team and project success.
-
-4. What misconception do your coworkers have about you?
-"Sometimes people assume I’m very quiet or reserved, but once I’m comfortable, I contribute a lot with ideas, feedback, and collaboration. I just take a little time to observe before jumping in."
-
-5. How do you push your boundaries and limits?
-"I deliberately take on tasks or projects that are slightly outside my comfort zone. I break them into manageable parts, seek guidance when needed, and treat every challenge as a learning opportunity. This approach has helped me grow faster and build confidence over time."
-
+How I push my boundaries and limits
+I deliberately take on work that’s slightly ahead of my current comfort zone—like building a full recruitment system instead of just a model, or automating workflows end to end instead of writing one script. I break the work down, learn what I need, ask for help when needed, and treat each project as a chance to upgrade my skills and thinking.
